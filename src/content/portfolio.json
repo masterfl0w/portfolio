@@ -11,54 +11,88 @@
   },
   "studies": [
     {
-      "period": "2021 - 2023",
-      "title": "Master's Degree in Artificial Intelligence",
-      "institution": "University Program",
-      "description": "Advanced coursework in machine learning, deep learning, data engineering, and optimization, with a strong focus on turning theoretical models into practical systems."
+      "period": "2021 - 2026",
+      "title": "Master's Degree in Software Engineering",
+      "institution": "EPITECH, France",
+      "description": "Advanced coursework in software engineering, data engineering, and optimization, with a strong focus on turning theoretical models into practical systems."
     },
     {
-      "period": "2018 - 2021",
-      "title": "Bachelor's Degree in Computer Science",
-      "institution": "Engineering Track",
-      "description": "Built a strong software foundation across algorithms, distributed systems, mathematics, and full-stack engineering."
+      "period": "2024 - 2025",
+      "title": "Software Engineering",
+      "institution": "Laval University, QC, Canada",
+      "description": "Year abroad in Canada, focused on software engineering and AI."
     }
   ],
   "careers": [
     {
-      "period": "2026 - Present",
-      "title": "ML Engineer",
-      "company": "Independent / Product-Focused Work",
-      "description": "Designing and deploying ML workflows, inference services, data pipelines, and AI-assisted features with an emphasis on observability, latency, and maintainability."
+      "period": "Sep 2025 - Aug 2026",
+      "title": "Teaching Assistant",
+      "company": "EPITECH, France",
+      "description": "Assisted students with software engineering and AI concepts, providing guidance on projects and helping them develop their technical skills."
     },
     {
-      "period": "2023 - 2024",
-      "title": "Data & AI Engineer",
-      "company": "Applied AI Projects",
-      "description": "Worked on model training, evaluation, backend integration, and analytics, helping bridge experimentation with production delivery."
+      "period": "Sep 2024 - Feb 2025",
+      "title": "Freelance - Design and Backend Engineering",
+      "company": "Bulltribe, Marseille, France",
+      "description": "Designed and developed a mobile application for Bulltribe, a company based in Marseille, France. The application was built using Flutter and Node.js in Typescript, and it was used to manage and track projects, tasks, and team members."
+    },
+    {
+      "period": "Jul 2022 - May 2024",
+      "title": "Fullstack Engineer",
+      "company": "Gamercraft, Marseille, France",
+      "description": "I worked on the Gamercraft platform, a website to earn money and prizes through competitive gaming. I was responsible for the development of the platform, including the frontend, backend and data science."
     }
   ],
   "skills": [
     "Python",
     "PyTorch",
-    "TensorFlow",
-    "Scikit-learn",
-    "LLM Applications",
+    "MLX",
+    "CoreML",
+    "C",
+    "C++",
+    "Typescript",
+    "Javascript",
+    "Rust",
     "RAG Systems",
-    "MLOps",
     "Docker",
-    "FastAPI",
-    "Data Pipelines",
-    "Experiment Tracking",
-    "Model Deployment"
+    "AdonisJS",
+    "Figma",
+    "Unreal Engine"
+  ],
+  "projects": [
+    {
+      "name": "Energizer",
+      "date": "2026",
+      "description": "Energizer is a ML library optimized for Mac M-series chips.",
+      "skills": ["Python", "MLX", "CoreML"]
+    },
+    {
+      "name": "Sirius",
+      "date": "2025",
+      "description": "Sirius is a Life simulator using AI prediction",
+      "skills": ["Python", "PyTorch"]
+    },
+    {
+      "name": "LibrOpen",
+      "date": "2024 - 2026",
+      "description": "LibrOpen is a open source website to share and explore open source projects. It's the final year project.",
+      "skills": ["Typescript", "AdonisJS", "PostgreSQL", "Docker"]
+    },
+    {
+      "name": "R-Type",
+      "date": "2023",
+      "description": "R-Type is a 2D side-scrolling shooter multiplayer game developed using C++ and SFML.",
+      "skills": ["C++", "SFML"]
+    }
   ],
   "links": [
     {
       "label": "GitHub",
-      "href": "https://github.com/"
+      "href": "https://github.com/masterfl0w"
     },
     {
       "label": "LinkedIn",
-      "href": "https://www.linkedin.com/"
+      "href": "https://www.linkedin.com/in/florian-grima"
     }
   ]
 }

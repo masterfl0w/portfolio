@@ -8,11 +8,12 @@ const sections = [
   { label: "Studies", href: "#studies" },
   { label: "Career", href: "#career" },
   { label: "Skills", href: "#skills" },
+  { label: "Projects", href: "#projects" },
   { label: "Links", href: "#links" },
 ];
 
 export default function App() {
-  const { profile, hero, studies, careers, skills, links } = portfolio;
+  const { profile, hero, studies, careers, skills, projects, links } = portfolio;
 
   useEffect(() => {
     const lenis = new Lenis({
@@ -74,7 +75,7 @@ export default function App() {
           <div className="portfolio-shell flex min-h-screen items-center justify-center pt-16 text-center sm:pt-20">
             <div className="flex max-w-7xl flex-col items-center">
               <p className="animate-fade-rise mb-6 text-sm uppercase tracking-[0.4em] text-muted-foreground">
-                {profile.role} · {profile.country}
+                {profile.name} · {profile.role}
               </p>
 
               <h1
@@ -96,7 +97,7 @@ export default function App() {
                 href="#profile"
                 className="liquid-glass animate-fade-rise-delay-2 mt-12 inline-flex rounded-full px-14 py-5 text-base text-foreground transition-transform duration-300 hover:scale-[1.03]"
               >
-                Begin Journey
+                Discover me
               </a>
 
               <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
@@ -167,7 +168,7 @@ export default function App() {
                     className="section-title"
                     style={{ fontFamily: "'Instrument Serif', serif" }}
                   >
-                    Academic foundations shaped for applied machine learning.
+                    Theoretical and Practical Foundations in Computer Science
                   </h2>
                 </div>
 
@@ -207,7 +208,7 @@ export default function App() {
                     className="section-title"
                     style={{ fontFamily: "'Instrument Serif', serif" }}
                   >
-                    Production-minded work across ML engineering and applied AI.
+                    Production-minded work across software engineering and AI
                   </h2>
                 </div>
 
@@ -259,6 +260,55 @@ export default function App() {
                     >
                       {skill}
                     </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="projects" className="portfolio-section" data-reveal>
+            <div className="portfolio-shell">
+              <div className="portfolio-panel">
+                <div className="mb-12 space-y-4">
+                  <p className="section-kicker">Projects</p>
+                  <h2
+                    className="section-title"
+                    style={{ fontFamily: "'Instrument Serif', serif" }}
+                  >
+                    Personal and academic projects
+                  </h2>
+                </div>
+
+                <div className="grid gap-6">
+                  {projects.map((project) => (
+                    <article
+                      key={`${project.date}-${project.name}`}
+                      className="portfolio-card"
+                    >
+                      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <h3 className="text-2xl text-foreground">{project.name}</h3>
+                        </div>
+                        <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
+                          {project.date}
+                        </p>
+                      </div>
+
+                      <p className="max-w-3xl leading-relaxed text-muted-foreground">
+                        {project.description}
+                      </p>
+
+                      <div className="mt-6 flex flex-wrap gap-3">
+                        {project.skills.map((skill) => (
+                          <span
+                            key={`${project.name}-${skill}`}
+                            className="liquid-glass inline-flex rounded-full px-4 py-2 text-xs uppercase tracking-[0.2em] text-foreground"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </article>
                   ))}
                 </div>
               </div>
