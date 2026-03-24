@@ -1,0 +1,64 @@
+{
+  "profile": {
+    "name": "GRIMA Florian",
+    "role": "ML Engineer",
+    "country": "France",
+    "summary": "I design and ship machine learning systems that stay useful after the demo: production pipelines, applied research, MLOps foundations, and product-facing AI experiences."
+  },
+  "hero": {
+    "title": "Where dreams rise through the silence.",
+    "description": "I build machine learning products for deep thinkers, bold creators, and quiet rebels. From experimentation to deployment, I focus on systems that are sharp, reliable, and made to last."
+  },
+  "studies": [
+    {
+      "period": "2021 - 2023",
+      "title": "Master's Degree in Artificial Intelligence",
+      "institution": "University Program",
+      "description": "Advanced coursework in machine learning, deep learning, data engineering, and optimization, with a strong focus on turning theoretical models into practical systems."
+    },
+    {
+      "period": "2018 - 2021",
+      "title": "Bachelor's Degree in Computer Science",
+      "institution": "Engineering Track",
+      "description": "Built a strong software foundation across algorithms, distributed systems, mathematics, and full-stack engineering."
+    }
+  ],
+  "careers": [
+    {
+      "period": "2024 - Present",
+      "title": "ML Engineer",
+      "company": "Independent / Product-Focused Work",
+      "description": "Designing and deploying ML workflows, inference services, data pipelines, and AI-assisted features with an emphasis on observability, latency, and maintainability."
+    },
+    {
+      "period": "2023 - 2024",
+      "title": "Data & AI Engineer",
+      "company": "Applied AI Projects",
+      "description": "Worked on model training, evaluation, backend integration, and analytics, helping bridge experimentation with production delivery."
+    }
+  ],
+  "skills": [
+    "Python",
+    "PyTorch",
+    "TensorFlow",
+    "Scikit-learn",
+    "LLM Applications",
+    "RAG Systems",
+    "MLOps",
+    "Docker",
+    "FastAPI",
+    "Data Pipelines",
+    "Experiment Tracking",
+    "Model Deployment"
+  ],
+  "links": [
+    {
+      "label": "GitHub",
+      "href": "https://github.com/"
+    },
+    {
+      "label": "LinkedIn",
+      "href": "https://www.linkedin.com/"
+    }
+  ]
+}
