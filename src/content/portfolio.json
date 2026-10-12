@@ -1,98 +1,93 @@
 {
   "profile": {
-    "name": "GRIMA Florian",
+    "name": "Florian Grima",
     "role": "ML Engineer",
+    "location": "Lyon, France",
     "country": "France",
-    "summary": "I’m a machine learning engineer who likes to build things that last. I’ve worked on everything from deep learning research to production ML pipelines, and I’m always looking for new challenges. I’m currently based in France, but I’m open to working remotely or relocating for the right opportunity."
+    "email": "florian.grima@epitech.eu",
+    "phone": "+33 7 75 72 41 84",
+    "experience": "4 years",
+    "summary": "I’m a machine learning engineer with four years of experience in software engineering and AI consulting. I connect models, data, and software to build useful systems — from internal RAG tools to backend architecture and AI workflows.",
+    "languages": ["French", "English", "Spanish"],
+    "resume": "/florian-grima-resume.pdf"
   },
   "hero": {
-    "title": "Where dreams rise through the silence.",
-    "description": "I build machine learning products for deep thinkers, bold creators, and quiet rebels. From experimentation to deployment, I focus on systems that are sharp, reliable, and made to last."
+    "eyebrow": "Software foundations. Machine learning mindset.",
+    "title": ["Making", "intelligence", "work."],
+    "description": "I’m Florian, an ML engineer in Lyon. I turn ideas into software, connect knowledge to models, and make AI useful in the real world."
   },
   "studies": [
     {
-      "period": "2021 - 2026",
-      "title": "Master's Degree in Software Engineering",
-      "institution": "EPITECH, France",
-      "description": "Advanced coursework in software engineering, data engineering, and optimization, with a strong focus on turning theoretical models into practical systems."
+      "period": "2021 – 2026",
+      "title": "Expert in Information Technology & Software Engineering",
+      "institution": "EPITECH · Marseille & Paris, France",
+      "description": "Diplôme d’Expert en technologies de l’information and Expert en ingénierie logicielle, registered at RNCP level 7. A project-based education in computer science and software engineering."
     },
     {
-      "period": "2024 - 2025",
-      "title": "Software Engineering",
-      "institution": "Laval University, QC, Canada",
-      "description": "Year abroad in Canada, focused on software engineering and AI."
+      "period": "2024 – 2025",
+      "title": "International exchange year",
+      "institution": "Université Laval · Québec City, Canada",
+      "description": "Fourth-year study abroad, with a focus on software engineering and AI."
     }
   ],
   "careers": [
     {
-      "period": "Sep 2025 - Aug 2026",
-      "title": "Teaching Assistant",
-      "company": "EPITECH, France",
-      "description": "Assisted students with software engineering and AI concepts, providing guidance on projects and helping them develop their technical skills."
+      "period": "Jan 2026 – Aug 2026",
+      "title": "AI Consultant",
+      "company": "TAKER",
+      "location": "Lyon, France",
+      "description": "Built an internal RAG tool connected to the company’s Notion knowledge base and designed an AI workflow architecture for the communication department.",
+      "highlights": ["Improved workflow productivity by 30% in six months through AI tooling, targeted training, and support.", "Designed and implemented the communication department’s AI workflow architecture within three months."],
+      "tags": ["RAG", "AI workflows", "Python", "Notion"]
     },
     {
-      "period": "Sep 2024 - Feb 2025",
-      "title": "Freelance - Design and Backend Engineering",
-      "company": "Bulltribe, Marseille, France",
-      "description": "Designed and developed a mobile application for Bulltribe, a company based in Marseille, France. The application was built using Flutter and Node.js in Typescript, and it was used to manage and track projects, tasks, and team members."
+      "period": "Sep 2025 – Aug 2026",
+      "title": "Teaching Assistant · Internship",
+      "company": "EPITECH",
+      "location": "Lyon, France",
+      "description": "Evaluated AI projects across four cohorts and developed workshops that made complex concepts accessible through Python, PyTorch, and collaborative learning.",
+      "highlights": ["Supported students working in C, C++, Python, Node.js, and PyTorch.", "Developed an AI workshop program in six months and improved student engagement by 35% over twelve months."],
+      "tags": ["PyTorch", "Teaching", "Python", "C++"]
     },
     {
-      "period": "Jul 2022 - May 2024",
+      "period": "Sep 2024 – Mar 2025",
+      "title": "Fullstack Engineer · Freelance",
+      "company": "Bulltribe",
+      "location": "Marseille, France",
+      "description": "Migrated the backend from JavaScript to TypeScript, optimized Firebase communication, and redesigned the mobile application’s interface.",
+      "highlights": ["Reduced bugs by 20% and backend response times by 70% within three months.", "Improved user engagement by 60% within four months by integrating user feedback into the interface."],
+      "tags": ["TypeScript", "Firebase", "Backend", "UI design"]
+    },
+    {
+      "period": "Jul 2022 – May 2024",
       "title": "Fullstack Engineer",
-      "company": "Gamercraft, Marseille, France",
-      "description": "I worked on the Gamercraft platform, a website to earn money and prizes through competitive gaming. I was responsible for the development of the platform, including the frontend, backend and data science."
+      "company": "Gamercraft",
+      "location": "Marseille, France",
+      "description": "Built a competitive gaming performance tracking tool and an AWS workflow connecting the frontend, backend, and data science stacks.",
+      "highlights": ["Improved user retention by 15% through analytics and feedback integration within three months.", "Connected software and data science systems through a dedicated AWS workflow."],
+      "tags": ["AWS", "Data science", "Analytics", "Fullstack"]
     }
   ],
-  "skills": [
-    "Python",
-    "PyTorch",
-    "MLX",
-    "CoreML",
-    "C",
-    "C++",
-    "Typescript",
-    "Javascript",
-    "Rust",
-    "RAG Systems",
-    "Docker",
-    "AdonisJS",
-    "Figma",
-    "Unreal Engine"
+  "skills": ["Python", "PyTorch", "TensorFlow", "MLX", "CoreML", "Metal", "CUDA", "ONNX", "RAG", "LangChain", "LlamaIndex", "vLLM", "Anthropic API", "pgvector", "Databricks", "TypeScript", "JavaScript", "Rust", "C", "C++", "C#", "SQL", "React", "Next.js", "Vue", "Node.js", "AdonisJS", "PostgreSQL", "AWS Lambda", "Docker", "Git", "Figma", "Unreal Engine"],
+  "skillGroups": [
+    { "name": "Machine learning", "description": "Models, retrieval, and evaluation.", "items": ["Python", "PyTorch", "TensorFlow", "MLX", "CoreML", "Metal", "CUDA", "ONNX"] },
+    { "name": "Applied AI", "description": "Intelligence connected to knowledge.", "items": ["RAG pipelines", "LangChain", "LlamaIndex", "vLLM", "Anthropic API", "pgvector", "Automated evaluation", "NLP"] },
+    { "name": "Software & data", "description": "The systems around the model.", "items": ["TypeScript", "React", "Next.js", "Node.js", "AdonisJS", "PostgreSQL", "AWS Lambda", "Docker", "Databricks", "Rust", "C++"] }
   ],
   "projects": [
-    {
-      "name": "Energizer",
-      "date": "2026",
-      "description": "Energizer is a ML library optimized for Mac M-series chips.",
-      "skills": ["Python", "MLX", "CoreML"]
-    },
-    {
-      "name": "Sirius",
-      "date": "2025",
-      "description": "Sirius is a Life simulator using AI prediction",
-      "skills": ["Python", "PyTorch"]
-    },
-    {
-      "name": "LibrOpen",
-      "date": "2024 - 2026",
-      "description": "LibrOpen is a open source website to share and explore open source projects. It's the final year project.",
-      "skills": ["Typescript", "AdonisJS", "PostgreSQL", "Docker"]
-    },
-    {
-      "name": "R-Type",
-      "date": "2023",
-      "description": "R-Type is a 2D side-scrolling shooter multiplayer game developed using C++ and SFML.",
-      "skills": ["C++", "SFML"]
-    }
+    { "name": "Energizer", "date": "2026", "category": "Machine learning", "description": "A machine learning library optimized for Apple chips. Exploring the connection between model performance and the hardware underneath.", "skills": ["Python", "PyTorch", "Metal", "CUDA"], "visual": "compute", "details": "A personal project exploring machine learning on Apple hardware, with Python, PyTorch, Metal, and CUDA. Related experiments include MLX and CoreML." },
+    { "name": "P.A.R.S.E", "date": "2026", "category": "Applied AI · TAKER", "description": "An internal RAG tool that connects company knowledge in Notion to an AI retrieval workflow.", "skills": ["RAG", "Python", "PyTorch", "TensorFlow"], "visual": "retrieval", "details": "Built during the AI consulting engagement at TAKER. P.A.R.S.E brings internal Notion content into a retrieval-augmented generation workflow, as part of the company’s broader adoption of AI tools." },
+    { "name": "LibrOpen", "date": "2024 – 2026", "category": "Final-year project", "description": "A web application for sharing personal projects, discovering open-source work, and giving builders more visibility.", "skills": ["Next.js", "TypeScript", "AdonisJS", "PostgreSQL", "Python"], "visual": "library", "details": "My final-year project at EPITECH: a platform designed to help people showcase their personal projects and explore the work of other developers." },
+    { "name": "Sirius", "date": "2025", "category": "Simulation", "description": "A life simulator using AI prediction to explore how intelligent systems evolve.", "skills": ["Python", "PyTorch"], "visual": "life", "details": "A personal and academic exploration of life simulation with AI prediction, using Python and PyTorch." },
+    { "name": "R-Type", "date": "2023", "category": "Networked game", "description": "A multiplayer side-scrolling shooter built from scratch in C++ and SFML.", "skills": ["C++", "SFML", "Networking"], "visual": "game", "details": "A networked game built from the ground up in C++, bringing together real-time gameplay, multiplayer communication, and a 2D side-scrolling world." }
+  ],
+  "metrics": [
+    { "value": "30%", "label": "more productive workflows", "context": "AI tooling & training · TAKER" },
+    { "value": "70%", "label": "lower backend response times", "context": "Firebase optimization · Bulltribe" },
+    { "value": "4", "label": "cohorts of future engineers", "context": "AI projects & workshops · EPITECH" }
   ],
   "links": [
-    {
-      "label": "GitHub",
-      "href": "https://github.com/masterfl0w"
-    },
-    {
-      "label": "LinkedIn",
-      "href": "https://www.linkedin.com/in/florian-grima"
-    }
+    { "label": "GitHub", "href": "https://github.com/masterfl0w" },
+    { "label": "LinkedIn", "href": "https://www.linkedin.com/in/florian-grima" }
   ]
 }

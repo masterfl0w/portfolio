@@ -1,354 +1,220 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import Lenis from "lenis";
-
 import portfolio from "@/content/portfolio.json";
 
-const sections = [
-  { label: "Profile", href: "#profile" },
-  { label: "Studies", href: "#studies" },
-  { label: "Career", href: "#career" },
-  { label: "Skills", href: "#skills" },
-  { label: "Projects", href: "#projects" },
-  { label: "Links", href: "#links" },
-];
+const nav = [{ label: "Work", href: "#projects" }, { label: "Experience", href: "#career" }, { label: "About", href: "#profile" }];
+
+function useReducedMotion() {
+  const [reduced, setReduced] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const change = () => setReduced(query.matches);
+    query.addEventListener("change", change);
+    return () => query.removeEventListener("change", change);
+  }, []);
+  return reduced;
+}
+
+// A lightweight, locally rendered grain field. No video or third-party animation runtime.
+function GrainField({ monochrome = false, paused = false }: { monochrome?: boolean; paused?: boolean }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current!;
+    const ctx = canvas.getContext("2d", { alpha: false });
+    if (!ctx) return;
+    let frame = 0, last = -100, visible = true;
+    const width = 400, height = monochrome ? 240 : 190;
+    canvas.width = width; canvas.height = height;
+    const buffer = ctx.createImageData(width, height);
+    const draw = (time: number) => {
+      if (visible && !document.hidden && time - last > 65) {
+        last = time;
+        const t = paused ? 0 : time * 0.00013;
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const nx = x / width, ny = y / height;
+            const wave = Math.sin(nx * 10 + t) + Math.cos(ny * 9 - t * 1.3) + Math.sin((nx + ny) * 13 + t * .6);
+            const noise = ((Math.sin(x * 127.1 + y * 311.7) * 43758.5453) % 1 + 1) % 1;
+            const i = (y * width + x) * 4;
+            if (monochrome) {
+              const ink = noise < Math.max(.015, (wave + 1.7) / 6) ? 33 : 241;
+              buffer.data[i] = ink; buffer.data[i + 1] = ink === 33 ? 33 : 134; buffer.data[i + 2] = ink === 33 ? 33 : 162;
+            } else {
+              const fade = Math.max(0, Math.min(1, (ny - .36) / .64));
+              const cloud = (Math.sin(nx * 9 + t) + Math.cos(ny * 6 - t)) / 2;
+              const grain = (noise - .5) * 47;
+              const r = 189 + 62 * cloud + grain, g = 153 + 44 * Math.sin(nx * 8 + ny * 3 - t) + grain, b = 213 + 30 * Math.cos(nx * 9 + t) + grain;
+              buffer.data[i] = r + (250 - r) * fade; buffer.data[i + 1] = g + (250 - g) * fade; buffer.data[i + 2] = b + (247 - b) * fade;
+            }
+            buffer.data[i + 3] = 255;
+          }
+        }
+        ctx.putImageData(buffer, 0, 0);
+      }
+      if (!paused) frame = requestAnimationFrame(draw);
+    };
+    const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; });
+    observer.observe(canvas); draw(0);
+    return () => { cancelAnimationFrame(frame); observer.disconnect(); };
+  }, [monochrome, paused]);
+  return <canvas ref={canvasRef} className="grain-field" aria-hidden="true" />;
+}
+
+function WindowPanel({ title, className = "", children, draggable = false }: { title: string; className?: string; children: ReactNode; draggable?: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const position = useRef({ x: 0, y: 0 });
+  const drag = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
+  return <div ref={ref} className={`retro-window ${className}`}>
+    <div className={`window-bar ${draggable ? "draggable" : ""}`}
+      tabIndex={draggable ? 0 : undefined}
+      aria-label={draggable ? `${title}. Use arrow keys to move this window on desktop.` : undefined}
+      onKeyDown={e => {
+        if (!draggable || window.innerWidth < 760 || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home"].includes(e.key)) return;
+        e.preventDefault();
+        const delta = e.shiftKey ? 25 : 10;
+        const x = e.key === "Home" ? 0 : Math.max(-90, Math.min(90, position.current.x + (e.key === "ArrowRight" ? delta : e.key === "ArrowLeft" ? -delta : 0)));
+        const y = e.key === "Home" ? 0 : Math.max(-55, Math.min(55, position.current.y + (e.key === "ArrowDown" ? delta : e.key === "ArrowUp" ? -delta : 0)));
+        position.current = { x, y }; ref.current!.style.transform = `translate(${x}px, ${y}px)`;
+      }}
+      onPointerDown={e => { if (!draggable || window.innerWidth < 760) return; e.currentTarget.setPointerCapture(e.pointerId); drag.current = { x: e.clientX, y: e.clientY, left: position.current.x, top: position.current.y }; ref.current!.style.zIndex = "5"; }}
+      onPointerMove={e => { if (!drag.current) return; const x = Math.max(-90, Math.min(90, drag.current.left + e.clientX - drag.current.x)); const y = Math.max(-55, Math.min(55, drag.current.top + e.clientY - drag.current.y)); position.current = { x, y }; ref.current!.style.transform = `translate(${x}px, ${y}px)`; }}
+      onPointerUp={() => { drag.current = null; }} onPointerCancel={() => { drag.current = null; }}>
+      <span>{title}</span><span aria-hidden="true">{draggable ? "⠿" : "▪"}</span>
+    </div>
+    <div className="window-body">{children}</div>
+  </div>;
+}
+
+function Clock({ paused }: { paused: boolean }) {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => { if (paused) return; const id = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(id); }, [paused]);
+  return <><p className="clock-date">{now.toLocaleDateString("en-GB", { timeZone: "Europe/Paris", weekday: "short", day: "numeric", month: "short" })}</p><p className="clock-time">{now.toLocaleTimeString("en-GB", { timeZone: "Europe/Paris" })}</p><p className="micro">Lyon, FR / Europe–Paris</p></>;
+}
+
+function Life({ paused }: { paused: boolean }) {
+  const makeSeed = () => Array.from({ length: 144 }, (_, i) => [17, 30, 40, 41, 42, 87, 88, 99, 100].includes(i));
+  const [cells, setCells] = useState(makeSeed);
+  useEffect(() => {
+    if (paused) return;
+    const id = setInterval(() => setCells(current => current.map((alive, i) => {
+      const x = i % 12, y = Math.floor(i / 12);
+      let neighbors = 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (dx || dy) neighbors += Number(current[((y + dy + 12) % 12) * 12 + (x + dx + 12) % 12]);
+      return neighbors === 3 || (alive && neighbors === 2);
+    })), 500);
+    return () => clearInterval(id);
+  }, [paused]);
+  return <><div className="life-grid" aria-hidden="true">{cells.map((alive, i) => <i key={i} className={alive ? "alive" : ""} />)}</div><button className="text-button micro" onClick={() => setCells(makeSeed())}>↺ Reseed simulation</button></>;
+}
+
+function ProjectArt({ kind }: { kind: string }) {
+  return <div className={`project-art art-${kind}`} aria-hidden="true">
+    {kind === "compute" ? <><div className="chip"><span>ENERGIZER</span><b>E</b><small>APPLE SILICON / ML</small></div><span className="art-caption">hardware × intelligence</span></> :
+    kind === "retrieval" ? <div className="retrieval-flow"><span>Notion<br /><small>knowledge</small></span><i>→</i><span className="retrieval-core">P.A.R.S.E<br /><small>retrieve + generate</small></span><i>→</i><span>Answer<br /><small>context</small></span></div> :
+    kind === "library" ? <div className="library-stack">{["discover", "build", "share"].map((s, i) => <div key={s} style={{ "--i": i } as CSSProperties}><span>↗</span>{s}<small>libropen / 0{i + 1}</small></div>)}</div> :
+    kind === "life" ? <div className="orbital">{[0, 1, 2, 3].map(i => <i key={i} style={{ "--i": i } as CSSProperties} />)}<span>SIRIUS</span></div> :
+    <div className="game-scene"><span className="space-ship">▟█▙<br />▀█▀</span><span className="laser">· · ━ ━</span><span className="enemy">✣</span><small>PLAYER 01 / READY</small></div>}
+  </div>;
+}
 
 export default function App() {
-  const { profile, hero, studies, careers, skills, projects, links } = portfolio;
+  const { profile, hero, projects, careers, studies, skillGroups, metrics, links } = portfolio;
+  const reduced = useReducedMotion();
+  const [motionPaused, setMotionPaused] = useState(false);
+  const paused = reduced || motionPaused;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
 
   useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.2,
-      smoothWheel: true,
-    });
-
+    document.documentElement.classList.toggle("motion-paused", paused);
+    if (paused) return;
+    const lenis = new Lenis({ duration: 1.1, smoothWheel: true, anchors: true });
     let frame = 0;
+    const animate = (time: number) => { lenis.raf(time); frame = requestAnimationFrame(animate); };
+    frame = requestAnimationFrame(animate);
+    return () => { cancelAnimationFrame(frame); lenis.destroy(); };
+  }, [paused]);
 
-    const onFrame = (time: number) => {
-      lenis.raf(time);
-      frame = window.requestAnimationFrame(onFrame);
-    };
-
-    frame = window.requestAnimationFrame(onFrame);
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          entry.target.classList.toggle("is-visible", entry.isIntersecting);
-        });
-      },
-      {
-        threshold: 0.24,
-        rootMargin: "0px 0px -8% 0px",
-      },
-    );
-
-    document.querySelectorAll("[data-reveal]").forEach((element) => {
-      observer.observe(element);
-    });
-
-    return () => {
-      observer.disconnect();
-      window.cancelAnimationFrame(frame);
-      lenis.destroy();
-    };
+  useEffect(() => {
+    const observer = new IntersectionObserver(entries => entries.forEach(entry => {
+      if (entry.isIntersecting) { entry.target.classList.add("is-visible"); observer.unobserve(entry.target); }
+    }), { threshold: .08 });
+    document.querySelectorAll("[data-reveal]").forEach(el => observer.observe(el));
+    const close = (e: KeyboardEvent) => { if (e.key === "Escape") setMenuOpen(false); };
+    window.addEventListener("keydown", close);
+    return () => { observer.disconnect(); window.removeEventListener("keydown", close); };
   }, []);
 
-  return (
-    <main className="relative min-h-screen bg-background text-foreground">
-      <div className="fixed inset-0 z-0 overflow-hidden">
-        <video
-          className="absolute inset-0 z-0 h-full w-full object-cover"
-          autoPlay
-          loop
-          muted
-          playsInline
-        >
-          <source
-            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260314_131748_f2ca2a28-fed7-44c8-b9a9-bd9acdd5ec31.mp4"
-            type="video/mp4"
-          />
-        </video>
-      </div>
+  useEffect(() => { if (!copied) return; const id = setTimeout(() => setCopied(false), 2500); return () => clearTimeout(id); }, [copied]);
 
-      <div className="relative z-10">
-        <section id="home" className="relative flex min-h-screen items-center justify-center">
-          <div className="portfolio-shell flex min-h-screen items-center justify-center pt-16 text-center sm:pt-20">
-            <div className="flex max-w-7xl flex-col items-center">
-              <p className="animate-fade-rise mb-6 text-sm uppercase tracking-[0.4em] text-muted-foreground">
-                {profile.name} · {profile.role}
-              </p>
-
-              <h1
-                className="animate-fade-rise text-5xl font-normal leading-[0.95] tracking-[-2.46px] text-foreground sm:text-7xl md:text-8xl"
-                style={{ fontFamily: "'Instrument Serif', serif" }}
-              >
-                Where <em className="not-italic text-muted-foreground">dreams</em>{" "}
-                rise{" "}
-                <em className="not-italic text-muted-foreground">
-                  through the silence.
-                </em>
-              </h1>
-
-              <p className="animate-fade-rise-delay mt-8 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                {hero.description}
-              </p>
-
-              <a
-                href="#profile"
-                className="liquid-glass animate-fade-rise-delay-2 mt-12 inline-flex rounded-full px-14 py-5 text-base text-foreground transition-transform duration-300 hover:scale-[1.03]"
-              >
-                Discover me
-              </a>
-
-              <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-                {sections.map((item) => (
-                  <a
-                    key={item.label}
-                    href={item.href}
-                    className="liquid-glass inline-flex rounded-full px-4 py-2 text-xs uppercase tracking-[0.25em] text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {item.label}
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <div className="portfolio-flow relative z-10 pb-24">
-          <section id="profile" className="portfolio-section" data-reveal>
-            <div className="portfolio-shell">
-              <div className="portfolio-panel grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-                <div className="space-y-6">
-                  <p className="section-kicker">Profile</p>
-                  <h2
-                    className="section-title max-w-3xl"
-                    style={{ fontFamily: "'Instrument Serif', serif" }}
-                  >
-                    {profile.name}, crafting machine learning systems from France.
-                  </h2>
-                  <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground">
-                    {profile.summary}
-                  </p>
-                </div>
-
-                <div className="portfolio-card space-y-6">
-                  <div>
-                    <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
-                      Role
-                    </p>
-                    <p className="mt-2 text-2xl text-foreground">{profile.role}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
-                      Base
-                    </p>
-                    <p className="mt-2 text-2xl text-foreground">{profile.country}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
-                      Focus
-                    </p>
-                    <p className="mt-2 text-muted-foreground">
-                      Applied ML, LLM products, data pipelines, model serving,
-                      experimentation, and production reliability.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section id="studies" className="portfolio-section" data-reveal>
-            <div className="portfolio-shell">
-              <div className="portfolio-panel">
-                <div className="mb-12 space-y-4">
-                  <p className="section-kicker">Studies</p>
-                  <h2
-                    className="section-title"
-                    style={{ fontFamily: "'Instrument Serif', serif" }}
-                  >
-                    Theoretical and Practical Foundations in Computer Science
-                  </h2>
-                </div>
-
-                <div className="grid gap-6">
-                  {studies.map((study) => (
-                    <article
-                      key={`${study.period}-${study.title}`}
-                      className="portfolio-card"
-                    >
-                      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                        <div>
-                          <h3 className="text-2xl text-foreground">{study.title}</h3>
-                          <p className="mt-2 text-muted-foreground">
-                            {study.institution}
-                          </p>
-                        </div>
-                        <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
-                          {study.period}
-                        </p>
-                      </div>
-                      <p className="max-w-3xl leading-relaxed text-muted-foreground">
-                        {study.description}
-                      </p>
-                    </article>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section id="career" className="portfolio-section" data-reveal>
-            <div className="portfolio-shell">
-              <div className="portfolio-panel">
-                <div className="mb-12 space-y-4">
-                  <p className="section-kicker">Career</p>
-                  <h2
-                    className="section-title"
-                    style={{ fontFamily: "'Instrument Serif', serif" }}
-                  >
-                    Production-minded work across software engineering and AI
-                  </h2>
-                </div>
-
-                <div className="grid gap-6">
-                  {careers.map((career) => (
-                    <article
-                      key={`${career.period}-${career.title}`}
-                      className="portfolio-card"
-                    >
-                      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                        <div>
-                          <h3 className="text-2xl text-foreground">{career.title}</h3>
-                          <p className="mt-2 text-muted-foreground">
-                            {career.company}
-                          </p>
-                        </div>
-                        <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
-                          {career.period}
-                        </p>
-                      </div>
-                      <p className="max-w-3xl leading-relaxed text-muted-foreground">
-                        {career.description}
-                      </p>
-                    </article>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section id="skills" className="portfolio-section" data-reveal>
-            <div className="portfolio-shell">
-              <div className="portfolio-panel">
-                <div className="mb-12 space-y-4">
-                  <p className="section-kicker">Skills</p>
-                  <h2
-                    className="section-title"
-                    style={{ fontFamily: "'Instrument Serif', serif" }}
-                  >
-                    Core tools and systems I use to move from prototype to production.
-                  </h2>
-                </div>
-
-                <div className="flex flex-wrap gap-4">
-                  {skills.map((skill) => (
-                    <span
-                      key={skill}
-                      className="liquid-glass inline-flex rounded-full px-5 py-3 text-sm text-foreground"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section id="projects" className="portfolio-section" data-reveal>
-            <div className="portfolio-shell">
-              <div className="portfolio-panel">
-                <div className="mb-12 space-y-4">
-                  <p className="section-kicker">Projects</p>
-                  <h2
-                    className="section-title"
-                    style={{ fontFamily: "'Instrument Serif', serif" }}
-                  >
-                    Personal and academic projects
-                  </h2>
-                </div>
-
-                <div className="grid gap-6">
-                  {projects.map((project) => (
-                    <article
-                      key={`${project.date}-${project.name}`}
-                      className="portfolio-card"
-                    >
-                      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                        <div>
-                          <h3 className="text-2xl text-foreground">{project.name}</h3>
-                        </div>
-                        <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
-                          {project.date}
-                        </p>
-                      </div>
-
-                      <p className="max-w-3xl leading-relaxed text-muted-foreground">
-                        {project.description}
-                      </p>
-
-                      <div className="mt-6 flex flex-wrap gap-3">
-                        {project.skills.map((skill) => (
-                          <span
-                            key={`${project.name}-${skill}`}
-                            className="liquid-glass inline-flex rounded-full px-4 py-2 text-xs uppercase tracking-[0.2em] text-foreground"
-                          >
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section id="links" className="portfolio-section" data-reveal>
-            <div className="portfolio-shell">
-              <div className="portfolio-panel">
-                <div className="mb-12 space-y-4">
-                  <p className="section-kicker">Links</p>
-                  <h2
-                    className="section-title"
-                    style={{ fontFamily: "'Instrument Serif', serif" }}
-                  >
-                    Places to follow the work, the code, and the next releases.
-                  </h2>
-                </div>
-
-                <div className="grid gap-6 md:grid-cols-2">
-                  {links.map((link) => (
-                    <a
-                      key={link.label}
-                      href={link.href}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="portfolio-card block transition-transform duration-300 hover:-translate-y-1"
-                    >
-                      <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
-                        {link.label}
-                      </p>
-                      <p className="mt-4 text-xl text-foreground">{link.href}</p>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
+  return <>
+    <a className="skip-link" href="#main">Skip to content</a>
+    <header className="site-header">
+      <a className="wordmark" href="#home" aria-label="Florian Grima home"><span className="brand-mark" aria-hidden="true">✳</span> Florian Grima<span className="wordmark-period">.</span></a>
+      <nav aria-label="Main navigation" className={menuOpen ? "nav-open" : ""} id="navigation">{nav.map(item => <a key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>{item.label}</a>)}</nav>
+      <div className="header-actions"><a className="resume-link" href={profile.resume} target="_blank" rel="noreferrer">Résumé <span>↗</span></a><a className="contact-link" href="#links">Let’s talk <span>↗</span></a><button className="menu-button" aria-expanded={menuOpen} aria-controls="navigation" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? "Close −" : "Menu +"}</button></div>
+    </header>
+    <main id="main">
+      <section className="hero" id="home">
+        <GrainField paused={paused} />
+        <div className="hero-topline micro"><span>PORTFOLIO / {new Date().getFullYear()}</span><span>ML ENGINEER · {profile.location.toUpperCase()}</span></div>
+        <div className="hero-content">
+          <div className="intro-note"><span className="status-dot" /> {hero.eyebrow}</div>
+          <h1 aria-label={hero.title.join(" ")}>{hero.title.map((line, i) => <span key={line} className={`hero-line line-${i}`}><span>{line}{i === 2 && <span className="hero-asterisk" aria-hidden="true">✳</span>}</span></span>)}</h1>
+          <div className="hero-bottom"><p>{hero.description}</p><a className="underlined-link" href="#projects">Explore my work <span>↘</span></a></div>
         </div>
-      </div>
+        <span className="vertical-code micro" aria-hidden="true">FG / HUMAN IDEAS → MACHINE INTELLIGENCE / 45.7640° N, 4.8357° E</span>
+        <div className="section-edge micro"><span>✣ &nbsp; BUILT WITH CURIOSITY</span><a href="#playground">SCROLL TO EXPLORE ↓</a><span>01 — 06</span></div>
+      </section>
+
+      <section className="pink-section" id="playground" aria-labelledby="playground-title">
+        <div className="section-label micro"><span id="playground-title">01 / INSIDE MY WORKSPACE</span><span>IDEAS IN MOTION</span></div>
+        <div className="desktop">
+          <GrainField monochrome paused={paused} />
+          <span className="desktop-label micro">FLORIAN.OS / V.01</span>
+          <WindowPanel title="about_me.txt" className="about-window" draggable><span className="pixel-star" aria-hidden="true">✳</span><p>{profile.name}<br /><span className="dim">{profile.role}</span></p><div className="window-rule" /><p className="micro">Software engineer.<br />AI builder. Always curious.</p></WindowPanel>
+          <WindowPanel title="local_time.exe" className="clock-window" draggable><Clock paused={paused} /></WindowPanel>
+          <WindowPanel title="current_explorations / 03" className="explore-window" draggable><div className="terminal-line"><span className="status-dot" /> SYSTEM READY</div><h2>From an idea.<br />To a working system.</h2><div className="terminal-list">{projects.slice(0, 3).map((project, i) => <a key={project.name} href={`#project-${project.visual}`}><span className="micro">0{i + 1}</span><strong>{project.name}</strong><span>{project.category.split(" ·")[0]}</span><b>↗</b></a>)}</div><div className="terminal-status micro"><span>Python · PyTorch · TypeScript</span><span className="blinking-cursor">█</span></div></WindowPanel>
+          <WindowPanel title="glider.exe" className="life-window" draggable><Life paused={paused} /></WindowPanel>
+          <div className="desktop-footer micro"><span>© {new Date().getFullYear()} Florian Grima<br />Made in France. With curiosity.</span><span className="drag-hint">⠿ DRAG A WINDOW TO EXPLORE</span></div>
+        </div>
+        <div className="about-section content-width" id="profile">
+          <div className="section-label micro"><span>02 / THE PERSON BEHIND THE CODE</span><span>SOFTWARE → AI → IMPACT</span></div>
+          <h2 className="display-heading" data-reveal>Good engineering.<br />Useful intelligence.</h2>
+          <div className="about-copy" data-reveal><span className="large-star" aria-hidden="true">✳</span><div><p className="lead">{profile.summary}</p><a className="underlined-link" href={profile.resume} download>Get my résumé <span>↓</span></a></div></div>
+          <div className="metrics">{metrics.map(metric => <div key={metric.value} data-reveal><strong>{metric.value}</strong><p>{metric.label}</p><span className="micro">{metric.context}</span></div>)}</div>
+          <p className="metrics-note micro">Selected outcomes from my professional experience.</p>
+        </div>
+      </section>
+
+      <section id="projects" className="projects-section content-width">
+        <div className="section-label micro"><span>03 / SELECTED WORK</span><span>PERSONAL, ACADEMIC & PROFESSIONAL</span></div>
+        <div className="section-heading" data-reveal><h2 className="display-heading">Built to<br /><em>do something.</em></h2><p>Experiments that become tools.<br />Tools that make a difference.</p></div>
+        <div className="project-grid">{projects.map((project, i) => <article className={`project-card project-${project.visual}`} id={`project-${project.visual}`} key={project.name} data-reveal>
+          <div className="project-meta micro"><span>0{i + 1} / {project.category}</span><span>{project.date}</span></div>
+          <ProjectArt kind={project.visual} />
+          <div className="project-description"><h3>{project.name}</h3><p>{project.description}</p><div className="tags">{project.skills.map(skill => <span key={skill}>{skill}</span>)}</div><details><summary>Project notes <span className="detail-plus">+</span></summary><p>{project.details}</p></details></div>
+        </article>)}</div>
+        <a className="underlined-link github-cta" href={links[0].href} target="_blank" rel="noreferrer">More on GitHub <span>↗</span></a>
+      </section>
+
+      <section id="career" className="career-section">
+        <div className="content-width"><div className="section-label micro"><span>04 / EXPERIENCE</span><span>{profile.experience.toUpperCase()} OF BUILDING</span></div><h2 className="display-heading" data-reveal>Less theory.<br />More shipped.</h2>
+          <div className="career-list">{careers.map((career, i) => <details key={career.company} className="career-row" open={i === 0 ? true : undefined} data-reveal><summary><span className="career-period micro">{career.period}</span><span className="career-title"><strong>{career.company}</strong><span>{career.title}</span></span><span className="detail-plus">+</span></summary><div className="career-details"><p>{career.description}</p><ul>{career.highlights.map(highlight => <li key={highlight}>{highlight}</li>)}</ul><div className="tags">{career.tags.map(tag => <span key={tag}>{tag}</span>)}</div><span className="micro">{career.location}</span></div></details>)}</div>
+        </div>
+      </section>
+
+      <section id="skills" className="skills-section content-width">
+        <div className="section-label micro"><span>05 / TOOLS & FOUNDATIONS</span><span>ALWAYS LEARNING</span></div><h2 className="display-heading" data-reveal>The right tools.<br />The whole picture.</h2>
+        <div className="skills-grid">{skillGroups.map((group, i) => <div key={group.name} className="skill-group" data-reveal><span className="micro">[0{i + 1}]</span><h3>{group.name}</h3><p>{group.description}</p><div className="tags">{group.items.map(item => <span key={item}>{item}</span>)}</div></div>)}</div>
+        <div className="education" id="studies"><h3 className="micro">EDUCATION /</h3><div>{studies.map(study => <article key={study.institution} data-reveal><span className="micro">{study.period}</span><h4>{study.title}</h4><p>{study.institution}</p><p className="education-description">{study.description}</p></article>)}</div></div>
+        <div className="languages micro"><span>HUMAN LANGUAGES</span><span>{profile.languages.join(" / ")}</span></div>
+      </section>
+
+      <footer id="links" className="contact-section">
+        <GrainField paused={paused} /><div className="content-width contact-content"><div className="section-label micro"><span>06 / THE NEXT THING STARTS WITH A CONVERSATION</span><span>LYON, FRANCE</span></div><h2 className="display-heading" data-reveal>Have something<br />in mind<span className="spinning-star" aria-hidden="true">✳</span>?</h2><a className="contact-email" href={`mailto:${profile.email}`}>Let’s build it. <span>↗</span></a><div className="contact-bottom"><div className="email-row"><a href={`mailto:${profile.email}`}>{profile.email}</a><button className="copy-button micro" onClick={async () => { try { await navigator.clipboard.writeText(profile.email); setCopied(true); setCopyError(false); } catch { setCopyError(true); } }}>{copied ? "COPIED ✓" : "COPY ↗"}</button><span className="sr-only" role="status">{copied ? "Email copied to clipboard" : copyError ? `Please copy ${profile.email} manually` : ""}</span></div><div className="social-links">{links.map(link => <a key={link.label} href={link.href} target="_blank" rel="noreferrer">{link.label} ↗</a>)}<a href={profile.resume} target="_blank" rel="noreferrer">Résumé ↗</a></div></div><div className="footer-rule micro"><span>© {new Date().getFullYear()} FLORIAN GRIMA</span><button className="text-button" aria-pressed={paused} disabled={reduced} onClick={() => setMotionPaused(!motionPaused)}>{paused ? "MOTION: OFF" : "MOTION: ON"} <span aria-hidden="true">{paused ? "○" : "◉"}</span></button><a href="#home">BACK TO TOP ↑</a></div></div>
+      </footer>
     </main>
-  );
+  </>;
 }
