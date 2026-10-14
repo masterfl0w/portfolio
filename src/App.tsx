@@ -4,7 +4,7 @@ import portfolio from "@/content/portfolio.json";
 
 const nav = [{ label: "Work", href: "#projects" }, { label: "Experience", href: "#career" }, { label: "About", href: "#profile" }];
 
-function useReducedMotion() {
+export function useReducedMotion() {
   const [reduced, setReduced] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -16,7 +16,7 @@ function useReducedMotion() {
 }
 
 // A lightweight, locally rendered grain field. No video or third-party animation runtime.
-function GrainField({ monochrome = false, paused = false }: { monochrome?: boolean; paused?: boolean }) {
+export function GrainField({ monochrome = false, paused = false }: { monochrome?: boolean; paused?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -26,27 +26,47 @@ function GrainField({ monochrome = false, paused = false }: { monochrome?: boole
     const width = 400, height = monochrome ? 240 : 190;
     canvas.width = width; canvas.height = height;
     const buffer = ctx.createImageData(width, height);
+    const data = buffer.data;
+    // Static per-pixel noise and fade, computed once instead of every frame.
+    const noise = new Float32Array(width * height);
+    for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) noise[y * width + x] = ((Math.sin(x * 127.1 + y * 311.7) * 43758.5453) % 1 + 1) % 1;
+    for (let i = 3; i < data.length; i += 4) data[i] = 255;
+    const fadeRow = new Float32Array(height);
+    for (let y = 0; y < height; y++) fadeRow[y] = Math.max(0, Math.min(1, (y / height - .36) / .64));
+    // Trig terms are separable: evaluate per column / row / diagonal, never per pixel.
+    const cx1 = new Float32Array(width), cx2 = new Float32Array(width), cxS = new Float32Array(width), cxC = new Float32Array(width), cxB = new Float32Array(width);
+    const ry1 = new Float32Array(height), ry2 = new Float32Array(height), ryS = new Float32Array(height), ryC = new Float32Array(height);
+    const diag = new Float32Array(width * 2);
     const draw = (time: number) => {
-      if (visible && !document.hidden && time - last > 65) {
+      if (visible && !document.hidden && time - last > 80) {
         last = time;
         const t = paused ? 0 : time * 0.00013;
+        for (let x = 0; x < width; x++) {
+          const nx = x / width;
+          cx1[x] = Math.sin(nx * 10 + t); cx2[x] = Math.sin(nx * 9 + t);
+          const a = nx * 8 - t; cxS[x] = Math.sin(a); cxC[x] = Math.cos(a); cxB[x] = Math.cos(nx * 9 + t);
+        }
         for (let y = 0; y < height; y++) {
+          const ny = y / height;
+          ry1[y] = Math.cos(ny * 9 - t * 1.3); ry2[y] = Math.cos(ny * 6 - t);
+          const b = ny * 3; ryS[y] = Math.sin(b); ryC[y] = Math.cos(b);
+        }
+        for (let d = 0; d < width * 2; d++) diag[d] = Math.sin((d / width) * 13 + t * .6);
+        for (let y = 0; y < height; y++) {
+          const fade = fadeRow[y];
           for (let x = 0; x < width; x++) {
-            const nx = x / width, ny = y / height;
-            const wave = Math.sin(nx * 10 + t) + Math.cos(ny * 9 - t * 1.3) + Math.sin((nx + ny) * 13 + t * .6);
-            const noise = ((Math.sin(x * 127.1 + y * 311.7) * 43758.5453) % 1 + 1) % 1;
+            const n = noise[y * width + x];
             const i = (y * width + x) * 4;
             if (monochrome) {
-              const ink = noise < Math.max(.015, (wave + 1.7) / 6) ? 33 : 241;
-              buffer.data[i] = ink; buffer.data[i + 1] = ink === 33 ? 33 : 134; buffer.data[i + 2] = ink === 33 ? 33 : 162;
+              const wave = cx1[x] + ry1[y] + diag[x + Math.round(y * width / height)];
+              const ink = n < Math.max(.015, (wave + 1.7) / 6) ? 33 : 241;
+              data[i] = ink; data[i + 1] = ink === 33 ? 33 : 134; data[i + 2] = ink === 33 ? 33 : 162;
             } else {
-              const fade = Math.max(0, Math.min(1, (ny - .36) / .64));
-              const cloud = (Math.sin(nx * 9 + t) + Math.cos(ny * 6 - t)) / 2;
-              const grain = (noise - .5) * 47;
-              const r = 189 + 62 * cloud + grain, g = 153 + 44 * Math.sin(nx * 8 + ny * 3 - t) + grain, b = 213 + 30 * Math.cos(nx * 9 + t) + grain;
-              buffer.data[i] = r + (250 - r) * fade; buffer.data[i + 1] = g + (250 - g) * fade; buffer.data[i + 2] = b + (247 - b) * fade;
+              const cloud = (cx2[x] + ry2[y]) / 2;
+              const grain = (n - .5) * 47;
+              const r = 189 + 62 * cloud + grain, g = 153 + 44 * (cxS[x] * ryC[y] + cxC[x] * ryS[y]) + grain, bl = 213 + 30 * cxB[x] + grain;
+              data[i] = r + (250 - r) * fade; data[i + 1] = g + (250 - g) * fade; data[i + 2] = bl + (247 - bl) * fade;
             }
-            buffer.data[i + 3] = 255;
           }
         }
         ctx.putImageData(buffer, 0, 0);
@@ -118,7 +138,7 @@ function ProjectArt({ kind }: { kind: string }) {
 }
 
 export default function App() {
-  const { profile, hero, projects, careers, studies, skillGroups, metrics, links } = portfolio;
+  const { profile, hero, projects, careers, studies, skillGroups, metrics, links, alert } = portfolio;
   const reduced = useReducedMotion();
   const [motionPaused, setMotionPaused] = useState(false);
   const paused = reduced || motionPaused;
@@ -158,6 +178,10 @@ export default function App() {
     <main id="main">
       <section className="hero" id="home">
         <GrainField paused={paused} />
+        <a className="xp-balloon" href={alert.href} role="status">
+          <span className="xp-icon" aria-hidden="true">i</span>
+          <span className="xp-body"><strong>{alert.title}</strong><span>{alert.text}</span><span className="xp-more micro">Click here to read the case study ↗</span></span>
+        </a>
         <div className="hero-topline micro"><span>PORTFOLIO / {new Date().getFullYear()}</span><span>ML ENGINEER · {profile.location.toUpperCase()}</span></div>
         <div className="hero-content">
           <div className="intro-note"><span className="status-dot" /> {hero.eyebrow}</div>
@@ -194,7 +218,7 @@ export default function App() {
         <div className="project-grid">{projects.map((project, i) => <article className={`project-card project-${project.visual}`} id={`project-${project.visual}`} key={project.name} data-reveal>
           <div className="project-meta micro"><span>0{i + 1} / {project.category}</span><span>{project.date}</span></div>
           <ProjectArt kind={project.visual} />
-          <div className="project-description"><h3>{project.name}</h3><p>{project.description}</p><div className="tags">{project.skills.map(skill => <span key={skill}>{skill}</span>)}</div><details><summary>Project notes <span className="detail-plus">+</span></summary><p>{project.details}</p></details></div>
+          <div className="project-description"><h3>{project.name}</h3><p>{project.description}</p><div className="tags">{project.skills.map(skill => <span key={skill}>{skill}</span>)}</div><details><summary>Project notes <span className="detail-plus">+</span></summary><p>{project.details}</p></details>{"href" in project && <a className="underlined-link case-link" href={project.href as string}>Read the case study <span>↗</span></a>}</div>
         </article>)}</div>
         <a className="underlined-link github-cta" href={links[0].href} target="_blank" rel="noreferrer">More on GitHub <span>↗</span></a>
       </section>
