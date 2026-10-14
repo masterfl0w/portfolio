@@ -13,7 +13,8 @@
       "English",
       "Spanish"
     ],
-    "resume": "/florian-grima-resume.pdf"
+    "resume": "/florian-grima-resume.pdf",
+    "resumeFr": "/florian-grima-resume-fr.pdf"
   },
   "hero": {
     "eyebrow": "Software foundations. Machine learning mindset.",
